@@ -122,7 +122,7 @@ public class ChatClient {
         // 프레임이 살아 있으므로 여기서 만들은 스레드는 계속 진행 됨
         // 이 프레임 스레드를 종료하면, 이 프레임에서 만든 스레드들은 예외를 발생하게되고
         // 이를 이용해 모든 스레드를 안전하게 종료 시키도록 함
-     } // close go
+     }
 
    private void setUpNetworking() {  
 	   try {
