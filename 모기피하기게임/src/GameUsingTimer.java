@@ -1,9 +1,7 @@
-// Revision : 2021-08-17
-// Memo : java.applet.AudioClip; is depreciated.
-//        Revised using javax.sound.sampled.* classes 
-
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
@@ -25,10 +23,17 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+// Revision : 2021-08-17
+//Memo : java.applet.AudioClip; is depreciated.
+//Revised using javax.sound.sampled.* classes 
+
+//Revision : 2021-09-13
+//Memo : JLayeredPane is not working properly.
+//Revised using CardLayout 
+
 // 1) 맞춰질때까지의 총시간으로 점수를 매기면 좋겠음 (최고점수자 등록)
 
 public class GameUsingTimer {
-	JFrame frame=new JFrame();				// 전체 GUI를 담을 프레임에 대한 레퍼런스
 	private final int S_MARGIN = 40;  		// 그림의 얼마 범위에 들어왔을 때 충돌로 결정할 것인지의 값(작은 그림)
 	private final int B_MARGIN = 80;  		// 그림의 얼마 범위에 들어왔을 때 충돌로 결정할 것인지의 값(큰 그림)
 	private final int WIN_WIDTH = 660; 		// 전체 frame의 폭
@@ -43,15 +48,16 @@ public class GameUsingTimer {
 	private final int CONT = 4;
 	private final int END = 8;
 	// 사용할 공격자 및 플레이어 그림 및 음향
-	// src 폴더가 루트 "/"로 인식됨. src 폴더와 동일한 레벨에 파일을 준비함
-	private final String ATTACKER_PIC = "/8.gif";
-	private final String BIG_ATTACKER_PIC = "/9.gif";
-	private final String PLAYER_PIC = "/2.gif";
-	private final String MAIN_PIC = "/main1.jpg";
-	//private final String BACKGROUND_SOUND = "/start.wav";	
-	private final String BACKGROUND_SOUND = "C:\\start.wav";	
+	// 그림등은 별도의 res폴더에 놓기로 함
+	// src 폴더가 루트 "/"로 인식되므로 res 폴더를 그 밑에 만들어 루트부터 경로명을 줌
+	private final String ATTACKER_PIC = "/res/8.gif";
+	private final String BIG_ATTACKER_PIC = "/res/9.gif";
+	private final String PLAYER_PIC = "/res/2.gif";
+	private final String MAIN_PIC = "/res/main1.jpg";
+	private final String BACKGROUND_SOUND = "C:\\start.wav";
 	private final String BOOM_SOUND = "C:\\boom.wav";
 
+	JFrame frame=new JFrame();				// 전체 GUI를 담을 프레임에 대한 레퍼런스
 	int gamePanelWidth, gamePanelHeight;	// 실제 게임이 이루어질 영역의 크기 
 	JPanel controlPanel=new JPanel();		// 게임 컨트롤과 시간, 사용자 디스플레이가 들어갈 패널
 	JButton start=new JButton("시작");		// 시작버튼
@@ -59,9 +65,11 @@ public class GameUsingTimer {
 	JButton suspend=new JButton("일시중지");	// 일시중지 버튼
 	JButton cont=new JButton("계속");			// 계속 버튼
 	JLabel timing=new JLabel("시간  : 0분 0초");// 게임경과 시간 디스플레이를 위한 라벨
-	JLayeredPane lp = new JLayeredPane();	// 화면을 여러장 겹치기 위한 Panel 레이어
+	JPanel midPanel;						// 중앙을 차지할 패널
 	JPanel coverPanel;						// 초기화면이 나타날 패널	
 	GamePanel gamePanel;					// 게임이 이루질 패널
+	Container container;					// 게임이 이루어질 패널의 pane을 가질 컨테이너
+	CardLayout card;						// 게임이 이루어질 패널에 화면을 여러장 겹치기 위한 Card 레이어
 	Timer goAnime;							// 그래픽 객체의 움직임을 관장하기 위한 타이머
 	Timer goClock;							// 시계구현을 위한 위한 타이머
 	ClockListener clockListener;			// 시계를 구현하기 위한 리스너
@@ -81,7 +89,7 @@ public class GameUsingTimer {
 	public void go() {
 		//GUI세팅
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+		
 		// 게임 조정 버튼 및 디스플레이 라벨들이 들어갈 패널
 		controlPanel.add(start);
 		controlPanel.add(suspend);
@@ -90,7 +98,7 @@ public class GameUsingTimer {
 		controlPanel.add(timing);
 		controlPanel.add(new JLabel(" Player : "));
 		controlPanel.add(new JLabel(playerName));
-
+		
 		// 게임의 진행이 디스플레이 될 패널
 		gamePanel = new GamePanel();
 		gamePanel.setBounds(0,0,WIN_WIDTH,WIN_HEIGHT);
@@ -98,26 +106,28 @@ public class GameUsingTimer {
 		// 초기화면을 위한 패널
 		coverPanel = new CoverPanel();
 		coverPanel.setBounds(0,0,WIN_WIDTH,WIN_HEIGHT);
-
+		
 		// 초기화면과 게임화면을 레이어화 함
-		lp.add(gamePanel, 0);
-		lp.add(coverPanel, 1);
-
+		midPanel = new JPanel();
+		card = new CardLayout();
+		midPanel.setLayout(card);
+		midPanel.add("1", coverPanel);
+		midPanel.add("2", gamePanel);
+		
 		// 전체 프레임에 배치
-		frame.add(lp);
-		frame.add(BorderLayout.CENTER, lp);
+		frame.add(BorderLayout.CENTER, midPanel);
 		frame.add(BorderLayout.SOUTH, controlPanel);
-
+		
 		// 게임이 이루어질 패널의 실제 폭과 넓이 계산
 		gamePanelWidth = gamePanel.getWidth() -70;
 		gamePanelHeight = gamePanel.getHeight() -130;
 
 		//출력될 객체들을 생성 (모기)하여 attackerList에 넣어 줌
 		prepareAttackers();
-
+		
 		// 키보드로 움직일 player 개체 생성
 		player = new Shape(getClass().getResource(PLAYER_PIC), B_MARGIN, gamePanelWidth, gamePanelHeight);
-
+		
 		// 시간 디스플레이, 객체의 움직임을 자동화 하기 위한 타이머들 
 		clockListener = new ClockListener();
 		goClock = new Timer(1000, clockListener);			// 시간을 초단위로 나타내기 위한 리스너
@@ -125,7 +135,7 @@ public class GameUsingTimer {
 
 		// Player의 키보드 움직임을 위한 감청자
 		gamePanel.addKeyListener(new DirectionListener());	// 키보드 리스너 설치
-		gamePanel.setFocusable(false);						// 초기에는 포커싱 안되게 함(즉 키 안먹음)
+		gamePanel.setFocusable(false);						// 초기에는 포키싱 안되게 함(즉 키 안먹음)
 
 		// 버튼  리스너의 설치
 		start.addActionListener(new StartListener());
@@ -133,11 +143,7 @@ public class GameUsingTimer {
 		cont.addActionListener(new ContListener());
 		end.addActionListener(new EndListener());
 
-		// 화면의 활성화
-		buttonToggler(START);	// 초기에는 start버튼만 활성화
-		frame.setSize(WIN_WIDTH,WIN_HEIGHT);
-		frame.setVisible(true);
-
+		// 게임을 위한 음향 파일 설치
 		// 음향파일의 준비
 		try {
 			File file = new File(BACKGROUND_SOUND);		// 게임 배경음향 
@@ -150,9 +156,13 @@ public class GameUsingTimer {
 		} catch (Exception e) { 
 			System.out.println("음향 파일 로딩 실패");
 		} 		
+		
+		// 화면의 활성화
+		buttonToggler(START);	// 초기에는 start버튼만 비 활성화
+		frame.setSize(WIN_WIDTH,WIN_HEIGHT);
+		frame.setVisible(true);
 	}
-
-
+	 
 	// 서비스 함수들
 
 	// 버튼의 활성 비활성화를 위한 루틴
@@ -174,7 +184,7 @@ public class GameUsingTimer {
 		else
 			end.setEnabled(false);
 	}
-
+	
 	// 게임의 시작에 사용될 공격자들
 	private void prepareAttackers() {
 		bigAttackerList = new ArrayList<Shape>();		// 큰 공격자의 리스트는 비움
@@ -183,16 +193,16 @@ public class GameUsingTimer {
 		attackerList.add(new HorizontallyMovingShape(getClass().getResource(ATTACKER_PIC), S_MARGIN, STEPS, gamePanelWidth, gamePanelHeight));
 		attackerList.add(new VerticallyMovingShape(getClass().getResource(ATTACKER_PIC), S_MARGIN, STEPS, gamePanelWidth, gamePanelHeight));
 	}
-
+	
 	// 게임의 종료시 처리해야 될 내용
 	private void finishGame() {
-		backgroundClip.stop();				// 배경 음향 종료
-		goClock.stop();						// 시간 디스플레이 멈춤
+		backgroundClip.stop();				// 음향 종료
+		goClock.stop();						// 시간 디스플에이 멈춤
 		goAnime.stop();						// 그림객체 움직임 멈춤
 		gamePanel.setFocusable(false);		// 포커싱 안되게 함(즉 키 안먹음)
 		buttonToggler(START);				// 활성화 버튼의 조정
 	}
-
+	
 	// 여러종류의 움직임을 랜덤으로 발생시키는 공격객체의 생성
 	private Shape getRandomAttacker(String pic, int margin, int steps) {
 		int rand = (int)(Math.random() * 3) + 1;
@@ -212,9 +222,9 @@ public class GameUsingTimer {
 		}
 		return newAttacker;
 	}
-
+	
 	// 내부 클래스 들
-
+	
 	// goAnime 타이머에 의해 주기적으로 실행될 내용
 	// 객체의 움직임, 충돌의 논리를 구현
 	public class AnimeListener implements ActionListener {
@@ -229,6 +239,7 @@ public class GameUsingTimer {
 			}			
 			boomClip.stop();					// 음향 종료
 		}
+		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			// 만약 충돌하였으면 충돌의 효과음 나타내고 타이머를 중단시킴
 			for (Shape s : attackerList) {
@@ -260,15 +271,18 @@ public class GameUsingTimer {
 		}
 	}
 
+	
 	// 시작 버튼의 감청자
 	class StartListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			lp.setLayer(gamePanel, 0);						// gamePanel 이 앞으로 나오게 함
+			// card.next(midPanel);							// gamePanel 이 앞으로 나오게 함
+			card.show(midPanel, "2");							// gamePanel 이 앞으로 나오게 함
 			gamePanel.setFocusable(true);					// gamePanel이 포커싱될 수 있게 함
 			gamePanel.requestFocus();						// 포커싱을 맞춰줌(이것 반드시 필요)
 
 			backgroundClip.loop(Clip.LOOP_CONTINUOUSLY);	// 게임 배경음악 반복							// 음향반복 횟수
 			backgroundClip.start();							// 게임 배경음향
+
 			goAnime.start();								// 그림객체 움직임을 위한 시작
 
 			clockListener.reset();							// 타이머의 시작값 초기화
@@ -281,7 +295,7 @@ public class GameUsingTimer {
 
 		}
 	}
-
+	
 	class SuspendListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			goClock.stop();		
@@ -290,7 +304,7 @@ public class GameUsingTimer {
 			buttonToggler(CONT+END);						// 활성화 버튼의 조정
 		}
 	}
-
+	
 	class ContListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			goClock.restart();
@@ -313,9 +327,7 @@ public class GameUsingTimer {
 		public void paintComponent(Graphics g) {
 			g.setColor(Color.white);
 			g.fillRect(0,0,this.getWidth(), this.getHeight());		// 화면 지우기
-			g.setColor(Color.black);
-			g.fillRect(0,0,this.getWidth(), 1);						// 구분선 긋기
-			
+		
 			// 게임에 사용되는 그래픽 객체들 모두 그려줌
 			for (Shape s : attackerList) {
 				s.draw(g, this);
@@ -326,7 +338,7 @@ public class GameUsingTimer {
 			player.draw(g, this);	
 		}
 	}
-
+	
 	// 초기화면을 나타내는 패널
 	class CoverPanel extends JPanel {
 		public void paintComponent(Graphics g) {
@@ -334,7 +346,7 @@ public class GameUsingTimer {
 			g.drawImage(image,0,0,this);
 		}
 	}
-
+	
 	// 시간 디스플레이를 위해 사용하는 시계
 	private class ClockListener implements ActionListener {
 		int times = 0;
@@ -351,10 +363,10 @@ public class GameUsingTimer {
 				if (bigAttackerList.isEmpty())			// 현재 활동 중이 아니면 하나 추가	
 					bigAttackerList.add(getRandomAttacker(BIG_ATTACKER_PIC, B_MARGIN, STEPS));
 				else									// 현재 활동 중이면 리스트 비우기
-					bigAttackerList.clear();
+					bigAttackerList = new ArrayList<Shape>();
 			}
 		}
-
+		
 		public void reset() {
 			times = 0;
 		}
@@ -362,30 +374,30 @@ public class GameUsingTimer {
 			return times;
 		}
 	}
-
+	
 	// 키보드 움직임을 감청하는 감청자
 	class DirectionListener implements KeyListener {
-		public void keyPressed (KeyEvent event) {
-			switch (event.getKeyCode()){
-			case KeyEvent.VK_UP:
-				if (player.y >= 0)
-					player.y -= STEPS;
-				break;
-			case KeyEvent.VK_DOWN:
-				if (player.y <= gamePanelHeight)
-					player.y += STEPS;
-				break;
-			case KeyEvent.VK_LEFT:
-				if (player.x >= 0)
-					player.x -= STEPS;
-				break;
-			case KeyEvent.VK_RIGHT:
-				if (player.x <= gamePanelWidth)
-					player.x += STEPS;
-				break;
-			}
-		}
-		public void keyTyped (KeyEvent event) {}
-		public void keyReleased (KeyEvent event) {}
-	}
+	   public void keyPressed (KeyEvent event) {
+		   switch (event.getKeyCode()){
+		   case KeyEvent.VK_UP:
+			   if (player.y >= 0)
+				   player.y -= STEPS;
+			   break;
+		   case KeyEvent.VK_DOWN:
+			   if (player.y <= gamePanelHeight)
+				   player.y += STEPS;
+			   break;
+		   case KeyEvent.VK_LEFT:
+			   if (player.x >= 0)
+				   player.x -= STEPS;
+			   break;
+		   case KeyEvent.VK_RIGHT:
+			   if (player.x <= gamePanelWidth)
+				   player.x += STEPS;
+			   break;
+		   }
+	   }
+	   public void keyTyped (KeyEvent event) {}
+	   public void keyReleased (KeyEvent event) {}
+   }
 }
