@@ -8,5 +8,8 @@ Java project samples that I use for my classes
 2. NetChat
   * Network chatting program using Sockets over TCP/IP
 ---
-3. NetworkOthello
+3. Othello
+  * Othello game program
+---
+4. NetworkOthello
   * Network Othello program using Sockets over TCP/IP
