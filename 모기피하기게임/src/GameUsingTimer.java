@@ -54,8 +54,8 @@ public class GameUsingTimer {
 	private final String BIG_ATTACKER_PIC = "/res/9.gif";
 	private final String PLAYER_PIC = "/res/2.gif";
 	private final String MAIN_PIC = "/res/main1.jpg";
-	private final String BACKGROUND_SOUND = "C:\\start.wav";
-	private final String BOOM_SOUND = "C:\\boom.wav";
+	private final String BACKGROUND_SOUND = "C:\\start.wav";		// 로컬디스크에서 load 함
+	private final String BOOM_SOUND = "C:\\boom.wav";				// 로컬디스크에서 load 함
 
 	JFrame frame=new JFrame();				// 전체 GUI를 담을 프레임에 대한 레퍼런스
 	int gamePanelWidth, gamePanelHeight;	// 실제 게임이 이루어질 영역의 크기 
