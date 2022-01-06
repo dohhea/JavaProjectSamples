@@ -8,6 +8,7 @@ import java.net.Socket;
 
 //이 프로그램은 소켓통신의 기본 기능 작동여부 확인을 위해 만든 코드로서 NetChat에서의 기본 기능만을 제공함
 //서버에서는 클라이언트를 접속하게 하고 문자열을 받아 이를 출력하는 역할을 함
+//실제적인 코드는 Chat으로 시작하는 파일에 있음
 
 public class MiniServer {
 	public static void main (String[] args) {
